@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { getAdminComplaints, updateComplaintStatus } from "../api/complaintApi";
 
 type ComplaintStatus = "Open" | "In Progress" | "Resolved";
 
@@ -8,7 +9,9 @@ interface Complaint {
   title: string;
   description: string;
   category: string;
+  studentId?: string;
   studentName?: string;
+  photoUrl?: string;
   isAnonymous: boolean;
   status: ComplaintStatus;
   createdAt: string;
@@ -42,26 +45,17 @@ const AdminDashboardPage: React.FC = () => {
       setLoading(true);
       setError(null);
 
-      const params = new URLSearchParams();
-      if (statusFilter !== "All") params.append("status", statusFilter);
-      if (categoryFilter !== "All") params.append("category", categoryFilter);
+      const params: any = {};
+      if (statusFilter !== "All") params.status = statusFilter;
+      if (categoryFilter !== "All") params.category = categoryFilter;
 
-      const res = await fetch(
-        `http://localhost:5000/api/admin/complaints?${params.toString()}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.message || "Failed to fetch complaints");
+      const response = await getAdminComplaints(params);
+      
+      if (response.success && response.complaints) {
+        setComplaints(response.complaints);
+      } else {
+        setError("Failed to fetch complaints");
       }
-
-      const data: Complaint[] = await res.json();
-      setComplaints(data);
     } catch (err: any) {
       setError(err.message || "Something went wrong");
     } finally {
@@ -71,28 +65,15 @@ const AdminDashboardPage: React.FC = () => {
 
   const handleStatusChange = async (id: string, status: ComplaintStatus) => {
     try {
-      const res = await fetch(
-        `http://localhost:5000/api/admin/complaints/${id}/status`,
-        {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ status }),
-        }
-      );
+      const response = await updateComplaintStatus(id, status);
 
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.message || "Failed to update status");
+      if (response.success && response.complaint) {
+        setComplaints((prev) =>
+          prev.map((c) => (c._id === response.complaint!._id ? response.complaint! : c))
+        );
+      } else {
+        throw new Error("Failed to update status");
       }
-
-      const updated: Complaint = await res.json();
-
-      setComplaints((prev) =>
-        prev.map((c) => (c._id === updated._id ? updated : c))
-      );
     } catch (err: any) {
       alert(err.message || "Unable to update status");
     }
@@ -213,8 +194,8 @@ const AdminDashboardPage: React.FC = () => {
                     <h2 className="font-semibold text-lg">{c.title}</h2>
                     <p className="text-xs text-gray-500">
                       {c.isAnonymous
-                        ? "Anonymous"
-                        : c.studentName || "Unknown student"}
+                        ? "📝 Anonymous"
+                        : `👤 ${c.studentName || "Unknown"} (ID: ${c.studentId || "N/A"})`}
                     </p>
                   </div>
                   <div className="flex items-center gap-2 text-xs">
@@ -237,6 +218,17 @@ const AdminDashboardPage: React.FC = () => {
                 </div>
 
                 <p className="text-sm text-gray-700">{c.description}</p>
+
+                {/* Photo preview if available */}
+                {c.photoUrl && (
+                  <div className="mt-2">
+                    <img 
+                      src={`http://localhost:5000${c.photoUrl}`} 
+                      alt="Complaint" 
+                      className="max-h-48 rounded-lg object-cover"
+                    />
+                  </div>
+                )}
 
                 <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-2 text-xs text-gray-500 mt-2">
                   <div>

@@ -5,7 +5,9 @@ export interface IComplaint extends Document {
   title: string;
   description: string;
   category: 'Hostel' | 'Academics' | 'Infrastructure' | 'Administration' | 'Other';
+  studentId?: string; // Track which student submitted this
   studentName?: string;
+  photoUrl?: string;
   isAnonymous: boolean;
   status: 'Open' | 'In Progress' | 'Resolved';
   createdAt: Date;
@@ -32,6 +34,14 @@ const complaintSchema = new Schema<IComplaint>(
       default: 'Other',
     },
     studentName: {
+      type: String,
+      default: null,
+    },
+    studentId: {
+      type: String,
+      default: null,
+    },
+    photoUrl: {
       type: String,
       default: null,
     },

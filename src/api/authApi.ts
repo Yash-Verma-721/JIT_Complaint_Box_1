@@ -18,6 +18,10 @@ export interface AdminLoginResponse {
   admin?: AdminData;
 }
 
+/**
+ * Admin login endpoint
+ * POST /api/auth/admin/login
+ */
 export const adminLogin = async (
   credentials: AdminLoginCredentials
 ): Promise<AdminLoginResponse> => {
@@ -27,6 +31,8 @@ export const adminLogin = async (
 
     if (data.success && data.token) {
       localStorage.setItem('jit_admin_token', data.token);
+      localStorage.setItem('jit_admin_name', data.admin?.name || 'Admin');
+      localStorage.setItem('jit_admin_email', data.admin?.email || '');
       console.log('✅ Admin logged in successfully');
     }
 
@@ -37,9 +43,15 @@ export const adminLogin = async (
   }
 };
 
+/**
+ * Admin logout
+ * Removes token from localStorage
+ */
 export const logoutAdmin = (): void => {
   try {
     localStorage.removeItem('jit_admin_token');
+    localStorage.removeItem('jit_admin_name');
+    localStorage.removeItem('jit_admin_email');
     console.log('✅ Admin logged out successfully');
   } catch (error) {
     console.error('❌ Error during logout:', error);
@@ -47,12 +59,27 @@ export const logoutAdmin = (): void => {
   }
 };
 
+/**
+ * Get stored admin token
+ */
 export const getAdminToken = (): string | null => {
   return localStorage.getItem('jit_admin_token');
 };
 
+/**
+ * Check if admin is authenticated
+ */
 export const isAdminAuthenticated = (): boolean => {
   return !!localStorage.getItem('jit_admin_token');
+};
+
+/**
+ * Get stored admin data
+ */
+export const getAdminData = (): { name: string; email: string } | null => {
+  const name = localStorage.getItem('jit_admin_name');
+  const email = localStorage.getItem('jit_admin_email');
+  return name && email ? { name, email } : null;
 };
 
 export default {
@@ -60,4 +87,5 @@ export default {
   logoutAdmin,
   getAdminToken,
   isAdminAuthenticated,
+  getAdminData,
 };

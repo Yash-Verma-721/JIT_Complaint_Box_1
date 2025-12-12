@@ -1,14 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-
-interface LoginResponse {
-  token: string;
-  admin: {
-    id: string;
-    email: string;
-    name: string;
-  };
-}
+import { adminLogin } from "../api/authApi";
 
 const AdminLoginPage: React.FC = () => {
   const navigate = useNavigate();
@@ -24,28 +16,19 @@ const AdminLoginPage: React.FC = () => {
     setLoading(true);
 
     try {
-      const res = await fetch("http://localhost:5000/api/auth/admin/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email, password }),
-      });
+      const response = await adminLogin({ email, password });
 
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.message || "Login failed");
+      if (response && response.success) {
+        // store admin name if provided
+        if (response.admin && response.admin.name) {
+          localStorage.setItem("jit_admin_name", response.admin.name);
+        }
+        navigate("/admin/dashboard");
+      } else {
+        throw new Error(response.message || "Login failed");
       }
-
-      const data: LoginResponse = await res.json();
-
-      // Save token to localStorage
-      localStorage.setItem("jit_admin_token", data.token);
-      localStorage.setItem("jit_admin_name", data.admin.name);
-
-      navigate("/admin/dashboard");
     } catch (err: any) {
-      setError(err.message || "Something went wrong");
+      setError(err?.message || 'Something went wrong');
     } finally {
       setLoading(false);
     }

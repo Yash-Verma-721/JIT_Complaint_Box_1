@@ -8,7 +8,9 @@ import { AuthenticatedRequest } from '../middleware/authMiddleware';
  */
 export const createComplaint = async (req: any, res: Response): Promise<void> => {
   try {
-    const { title, description, category, studentName, isAnonymous } = req.body;
+    const { title, description, category, studentName, isAnonymous, studentId } = req.body;
+    // If a file was uploaded by multer it will be available at req.file
+    const file = req.file as Express.Multer.File | undefined;
 
     // Validate required fields
     if (!title || !description) {
@@ -25,6 +27,8 @@ export const createComplaint = async (req: any, res: Response): Promise<void> =>
       description,
       category: category || 'Other',
       studentName: studentName || null,
+      studentId: studentId || null,
+      photoUrl: file ? `/uploads/${file.filename}` : null,
       isAnonymous: isAnonymous || false,
       status: 'Open', // Default status
     });

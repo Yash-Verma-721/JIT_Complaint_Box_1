@@ -1,80 +1,48 @@
-// client/src/App.tsx
-import React from "react";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import AdminLoginPage from "./pages/AdminLoginPage";
-import AdminDashboard from "./pages/AdminDashboardPage";
-import NotFoundPage from "./pages/NotFoundPage";
-// import your existing pages:
-import ReportComplaintPage from "./pages/ReportComplaintPage";
-// import HomePage, Student pages etc if you have them
-import AdminDashboard from './src/pages/AdminDashboard';
+import { Routes, Route, Navigate } from 'react-router-dom';
+import MainLayout from './layout/MainLayout';
 
-// ...
-<Route
-  path="/admin/dashboard"
-  element={
-    <RequireAdmin>
-      <AdminDashboardPage />
-    </RequireAdmin>
-  }
-/>
+// Pages
+import HomePage from './pages/HomePage';
+import StudentLoginPage from './pages/StudentLoginPage';
+import StudentSignupPage from './pages/StudentSignupPage';
+import StudentDashboardPage from './pages/StudentDashboardPage';
+import ReportComplaintPage from './pages/ReportComplaintPage';
+import AdminLoginPage from './pages/AdminLoginPage';
+import AdminDashboard from './pages/AdminDashboard';
+import NotFoundPage from './pages/NotFoundPage';
+import ThankYouPage from './pages/ThankYouPage';
 
+// Components
+import RequireAdmin from './components/RequireAdmin';
 
-const App: React.FC = () => {
-  const RequireAdmin: React.FC<{ children: React.ReactElement }> = ({
-    children,
-  }) => {
-    const token = localStorage.getItem("jit_admin_token");
-    if (!token) {
-      return <Navigate to="/admin/login" replace />;
-    }
-    return children;
-  };
-
+export default function App() {
   return (
-    <BrowserRouter>
-      {/* Simple navbar */}
-      <div className="bg-white shadow-sm">
-        <div className="max-w-6xl mx-auto px-4 py-3 flex justify-between items-center">
-          <a href="/" className="font-bold text-lg">
-            JIT Complaint Box
-          </a>
-          <div className="flex gap-4 text-sm">
-            <a href="/report" className="hover:underline">
-              Report
-            </a>
-            <a href="/admin/login" className="hover:underline">
-              Admin
-            </a>
-          </div>
-        </div>
-      </div>
+    <Routes>
+      <Route path="/" element={<MainLayout />}>
+        <Route index element={<HomePage />} />
+        <Route path="login" element={<StudentLoginPage />} />
+        <Route path="signup" element={<StudentSignupPage />} />
+        <Route path="dashboard" element={<StudentDashboardPage />} />
+        <Route path="report" element={<ReportComplaintPage />} />
+        <Route path="thanks" element={<ThankYouPage />} />
 
-      <Routes>
-        {/* Replace this with your real HomePage if you have one */}
-        <Route path="/" element={<ReportComplaintPage />} />
-
-        {/* Student etc routes here if required */}
-
-        <Route path="/report" element={<ReportComplaintPage />} />
-
-        <Route path="/admin/login" element={<AdminLoginPage />} />
+        {/* Admin routes */}
+        <Route path="admin/login" element={<AdminLoginPage />} />
         <Route
-          path="/admin/dashboard"
+          path="admin/dashboard"
           element={
             <RequireAdmin>
-              <AdminDashboardPage />
+              <AdminDashboard />
             </RequireAdmin>
           }
         />
 
+        {/* 404 */}
         <Route path="*" element={<NotFoundPage />} />
-      </Routes>
-    </BrowserRouter>
+      </Route>
+    </Routes>
   );
-};
-
-export default App;
+}
 
 
 

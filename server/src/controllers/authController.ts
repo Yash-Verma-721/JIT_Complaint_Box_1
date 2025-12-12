@@ -1,6 +1,8 @@
 import { Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
 import Admin from '../models/Admin';
+import bcrypt from 'bcryptjs';
+import { isUsingMockDatabase, getMockDatabase } from '../services/databaseService';
 
 /**
  * Admin login controller
@@ -9,6 +11,7 @@ import Admin from '../models/Admin';
 export const adminLogin = async (req: Request, res: Response): Promise<void> => {
   try {
     const { email, password } = req.body;
+    console.log('➡️ adminLogin called', { email });
 
     // Validate request body
     if (!email || !password) {
@@ -19,27 +22,57 @@ export const adminLogin = async (req: Request, res: Response): Promise<void> => 
       return;
     }
 
-    // Find admin by email
-    const admin = await Admin.findOne({ email: email.toLowerCase() }).select('+passwordHash');
+    // TEMP DEBUG: confirm route is reachable (remove after troubleshooting)
+    // Comment out the next two lines once we've verified the route
+    // res.status(200).json({ success: true, debug: 'adminLogin handler reached', email });
+    // return;
 
-    if (!admin) {
-      res.status(401).json({
-        success: false,
-        message: 'Invalid email or password',
-      });
-      return;
+    // If using mock in-memory DB, use mock lookup
+    let admin: any = null;
+    if (isUsingMockDatabase()) {
+      console.log('ℹ️ using mock database for admin login');
+      const mockDb = getMockDatabase();
+      admin = mockDb.getAdminByEmail(email);
+
+      console.log('ℹ️ mock admin lookup result:', { found: !!admin });
+
+      if (!admin) {
+        res.status(401).json({ success: false, message: 'Invalid email or password' });
+        return;
+      }
+
+      // Compare password using bcrypt against stored hash
+      const isPasswordValid = await bcrypt.compare(password, admin.passwordHash);
+      console.log('ℹ️ mock password valid:', isPasswordValid);
+      if (!isPasswordValid) {
+        res.status(401).json({ success: false, message: 'Invalid email or password' });
+        return;
+      }
+    } else {
+      // Find admin by email in MongoDB
+      admin = await Admin.findOne({ email: email.toLowerCase() }).select('+passwordHash');
+
+      if (!admin) {
+        res.status(401).json({
+          success: false,
+          message: 'Invalid email or password',
+        });
+        return;
+      }
+
+      // Compare password
+      const isPasswordValid = await admin.comparePassword(password);
+      console.log('ℹ️ mongo password valid:', isPasswordValid);
+      if (!isPasswordValid) {
+        res.status(401).json({
+          success: false,
+          message: 'Invalid email or password',
+        });
+        return;
+      }
     }
 
-    // Compare password
-    const isPasswordValid = await admin.comparePassword(password);
-
-    if (!isPasswordValid) {
-      res.status(401).json({
-        success: false,
-        message: 'Invalid email or password',
-      });
-      return;
-    }
+    // password validity already checked inside each branch
 
     // Check JWT_SECRET
     const jwtSecret = process.env.JWT_SECRET;
@@ -52,7 +85,8 @@ export const adminLogin = async (req: Request, res: Response): Promise<void> => 
       return;
     }
 
-    // Generate JWT token
+  // Generate JWT token
+  console.log('ℹ️ about to generate JWT', { jwtSecretPresent: !!process.env.JWT_SECRET, adminId: admin?._id });
     const token = jwt.sign(
       {
         id: admin._id,
@@ -79,9 +113,12 @@ export const adminLogin = async (req: Request, res: Response): Promise<void> => 
     });
   } catch (error) {
     console.error('❌ Error during admin login:', error);
+    // In development include error stack in response for easier debugging
+    const errMsg = (error as any)?.stack || (error as any)?.message || String(error);
     res.status(500).json({
       success: false,
       message: 'Internal server error',
+      error: errMsg,
     });
   }
 };

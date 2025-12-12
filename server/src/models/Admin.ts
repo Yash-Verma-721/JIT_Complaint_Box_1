@@ -1,17 +1,21 @@
 import { Schema, model, Document } from 'mongoose';
-import bcrypt from 'bcryptjs';
+import bcryptjs from 'bcryptjs';
 
-// TypeScript interface for Admin document
+/**
+ * Admin document interface
+ */
 export interface IAdmin extends Document {
   email: string;
   passwordHash: string;
   name: string;
   createdAt: Date;
   updatedAt: Date;
-  comparePassword(password: string): Promise<boolean>;
+  comparePassword(plainPassword: string): Promise<boolean>;
 }
 
-// Mongoose schema for Admin
+/**
+ * Admin schema
+ */
 const adminSchema = new Schema<IAdmin>(
   {
     email: {
@@ -19,17 +23,19 @@ const adminSchema = new Schema<IAdmin>(
       required: [true, 'Email is required'],
       unique: true,
       lowercase: true,
+      trim: true,
       match: [/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/, 'Please provide a valid email'],
     },
     passwordHash: {
       type: String,
       required: [true, 'Password is required'],
-      minlength: [6, 'Password must be at least 6 characters long'],
+      minlength: [6, 'Password must be at least 6 characters'],
       select: false, // Don't return password by default
     },
     name: {
       type: String,
       required: [true, 'Name is required'],
+      trim: true,
     },
   },
   {
@@ -37,32 +43,29 @@ const adminSchema = new Schema<IAdmin>(
   }
 );
 
-// Pre-save middleware to hash password
-adminSchema.pre('save', async function (next) {
+/**
+ * Hash password before saving
+ */
+adminSchema.pre('save', async function () {
   // Only hash password if it has been modified or is new
   if (!this.isModified('passwordHash')) {
-    return next();
+    return;
   }
 
-  try {
-    const salt = await bcrypt.genSalt(10);
-    this.passwordHash = await bcrypt.hash(this.passwordHash, salt);
-    next();
-  } catch (error) {
-    next(error as any);
-  }
+  const salt = await bcryptjs.genSalt(10);
+  this.passwordHash = await bcryptjs.hash(this.passwordHash, salt);
 });
 
-// Instance method to compare passwords
-adminSchema.methods.comparePassword = async function (password: string): Promise<boolean> {
-  try {
-    return await bcrypt.compare(password, this.passwordHash);
-  } catch (error) {
-    throw new Error('Error comparing passwords');
-  }
+/**
+ * Method to compare password
+ */
+adminSchema.methods.comparePassword = async function (plainPassword: string): Promise<boolean> {
+  return await bcryptjs.compare(plainPassword, this.passwordHash);
 };
 
-// Mongoose model for Admin
+/**
+ * Admin model
+ */
 const Admin = model<IAdmin>('Admin', adminSchema);
 
 export default Admin;
