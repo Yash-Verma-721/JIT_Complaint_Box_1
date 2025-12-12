@@ -16,7 +16,7 @@ export default function StudentSignupSuccessPage() {
         <h1 className="text-3xl font-bold text-gray-800 mb-2">Sign Up Successful!</h1>
         <p className="text-gray-600 mb-6">Your account has been created. You can now log in and submit complaints.</p>
         <button
-          onClick={() => navigate('/student/login')}
+          onClick={() => navigate('/login')}
           className="w-full bg-indigo-600 text-white py-2 px-4 rounded-lg hover:bg-indigo-700 transition"
         >
           Go to Login
