@@ -6,8 +6,10 @@ import {
   createComplaint,
   getAllComplaintsForAdmin,
   updateComplaintStatus,
+  getStudentComplaints,
 } from '../controllers/complaintController';
 import { requireAdminAuth } from '../middleware/authMiddleware';
+import { requireStudentAuth } from '../middleware/studentAuthMiddleware';
 
 const router = Router();
 
@@ -35,7 +37,7 @@ const upload = multer({ storage });
 
 // Define the explicit /complaints path so when this router is mounted at
 // /api the full path becomes POST /api/complaints which matches the client.
-router.post('/complaints', upload.single('photo'), createComplaint);
+router.post('/complaints', requireStudentAuth, upload.single('photo'), createComplaint);
 
 /**
  * GET /api/admin/complaints
@@ -43,6 +45,12 @@ router.post('/complaints', upload.single('photo'), createComplaint);
  * Query params: status, category
  */
 router.get('/admin/complaints', requireAdminAuth, getAllComplaintsForAdmin);
+
+/**
+ * GET /api/student/complaints
+ * Get student's own complaints (protected)
+ */
+router.get('/student/complaints', requireStudentAuth, getStudentComplaints);
 
 /**
  * PATCH /api/admin/complaints/:id/status

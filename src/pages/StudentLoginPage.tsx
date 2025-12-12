@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { studentLogin } from '../api/studentAuthApi';
+import { studentLogin } from '../api/studentApi';
 
 type FormState = {
   email: string;
@@ -41,8 +41,8 @@ export default function StudentLoginPage(): JSX.Element {
       });
 
       if (response.success) {
-        // Redirect to student dashboard on successful login
-        navigate('/dashboard');
+        // Redirect to student home on successful login
+        navigate('/student/home');
       } else {
         setApiError(response.message || 'Login failed');
       }

@@ -12,6 +12,7 @@ import apiService, {
   AdminLoginResponse,
   ApiErrorResponse,
 } from '../services/apiService';
+import * as studentApi from '../api/studentApi';
 
 // ============ TYPES ============
 
@@ -162,6 +163,44 @@ export function useAuthOperations() {
   };
 }
 
+// ============ STUDENT HOOKS ============
+
+/**
+ * Hook for student signup
+ */
+export function useStudentSignup() {
+  return useAsync((data: studentApi.StudentSignupData) => studentApi.studentSignup(data));
+}
+
+/**
+ * Hook for student login
+ */
+export function useStudentLogin() {
+  return useAsync((credentials: studentApi.StudentCredentials) => studentApi.studentLogin(credentials));
+}
+
+/**
+ * Hook for getting student's own complaints
+ */
+export function useStudentComplaints() {
+  return useAsync(() => studentApi.getMyComplaints());
+}
+
+/**
+ * Hook for student authentication
+ */
+export function useStudentAuth() {
+  const logout = useCallback(() => {
+    studentApi.studentLogout();
+  }, []);
+
+  return {
+    isAuthenticated: studentApi.isStudentAuthenticated,
+    token: studentApi.getStudentToken,
+    logout,
+  };
+}
+
 // ============ CONVENIENCE HOOKS ============
 
 /**
@@ -181,5 +220,9 @@ export default {
   useAuthToken,
   useComplaintOperations,
   useAuthOperations,
+  useStudentSignup,
+  useStudentLogin,
+  useStudentComplaints,
+  useStudentAuth,
   useAPI,
 };

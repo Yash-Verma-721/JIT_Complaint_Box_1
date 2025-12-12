@@ -1,18 +1,17 @@
 import { Response } from 'express';
 import Complaint, { IComplaint } from '../models/Complaint';
 import { AuthenticatedRequest } from '../middleware/authMiddleware';
+import { StudentRequest } from '../middleware/studentAuthMiddleware';
 
 /**
  * Create a new complaint
  * POST /api/complaints
  */
-export const createComplaint = async (req: any, res: Response): Promise<void> => {
+export const createComplaint = async (req: StudentRequest, res: Response): Promise<void> => {
   try {
-    const { title, description, category, studentName, isAnonymous, studentId } = req.body;
-    // If a file was uploaded by multer it will be available at req.file
+    const { title, description, category, studentName, isAnonymous } = req.body;
     const file = req.file as Express.Multer.File | undefined;
 
-    // Validate required fields
     if (!title || !description) {
       res.status(400).json({
         success: false,
@@ -21,19 +20,17 @@ export const createComplaint = async (req: any, res: Response): Promise<void> =>
       return;
     }
 
-    // Create new complaint with default status "Open"
     const complaint = new Complaint({
       title,
       description,
       category: category || 'Other',
       studentName: studentName || null,
-      studentId: studentId || null,
+      studentId: req.studentId || null,
       photoUrl: file ? `/uploads/${file.filename}` : null,
       isAnonymous: isAnonymous || false,
-      status: 'Open', // Default status
+      status: 'Open',
     });
 
-    // Save complaint
     const savedComplaint = await complaint.save();
 
     res.status(201).json({
@@ -141,6 +138,31 @@ export const updateComplaintStatus = async (
     });
   } catch (error) {
     console.error('❌ Error updating complaint status:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error',
+    });
+  }
+};
+
+/**
+ * Get student's own complaints
+ * GET /api/student/complaints
+ */
+export const getStudentComplaints = async (
+  req: StudentRequest,
+  res: Response
+): Promise<void> => {
+  try {
+    const complaints = await Complaint.find({ studentId: req.studentId }).sort({ createdAt: -1 });
+
+    res.status(200).json({
+      success: true,
+      count: complaints.length,
+      complaints,
+    });
+  } catch (error) {
+    console.error('❌ Error fetching student complaints:', error);
     res.status(500).json({
       success: false,
       message: 'Internal server error',

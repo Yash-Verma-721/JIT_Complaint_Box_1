@@ -9,7 +9,9 @@ const apiClient: AxiosInstance = axios.create({
 
 apiClient.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('jit_admin_token');
+    const adminToken = localStorage.getItem('jit_admin_token');
+    const studentToken = localStorage.getItem('jit_student_token');
+    const token = adminToken || studentToken;
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -27,6 +29,7 @@ apiClient.interceptors.response.use(
   (error: AxiosError) => {
     if (error.response?.status === 401) {
       localStorage.removeItem('jit_admin_token');
+      localStorage.removeItem('jit_student_token');
     }
     return Promise.reject(error);
   }

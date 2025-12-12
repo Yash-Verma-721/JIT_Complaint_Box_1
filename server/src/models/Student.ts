@@ -50,16 +50,14 @@ const studentSchema = new Schema<IStudent>(
 /**
  * Hash password before saving
  */
-studentSchema.pre('save', async function (next: any) {
-  if (!this.isModified('passwordHash')) return next();
-
-  try {
-    const salt = await bcryptjs.genSalt(10);
-    this.passwordHash = await bcryptjs.hash(this.passwordHash, salt);
-    next();
-  } catch (error: any) {
-    next(error);
+studentSchema.pre('save', async function () {
+  // Only hash password if it has been modified or is new
+  if (!this.isModified('passwordHash')) {
+    return;
   }
+
+  const salt = await bcryptjs.genSalt(10);
+  this.passwordHash = await bcryptjs.hash(this.passwordHash, salt);
 });
 
 /**

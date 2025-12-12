@@ -14,6 +14,8 @@ import ThankYouPage from './pages/ThankYouPage';
 
 // Components
 import RequireAdmin from './components/RequireAdmin';
+import { RequireStudent } from './components/RequireStudent';
+import StudentHomePage from './pages/StudentHomePage';
 
 export default function App() {
   return (
@@ -22,6 +24,7 @@ export default function App() {
         <Route index element={<HomePage />} />
         <Route path="login" element={<StudentLoginPage />} />
         <Route path="signup" element={<StudentSignupPage />} />
+        <Route path="student/home" element={<RequireStudent><StudentHomePage /></RequireStudent>} />
         <Route path="dashboard" element={<StudentDashboardPage />} />
         <Route path="report" element={<ReportComplaintPage />} />
         <Route path="thanks" element={<ThankYouPage />} />
