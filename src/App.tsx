@@ -11,6 +11,7 @@ import AdminLoginPage from './pages/AdminLoginPage';
 import AdminDashboard from './pages/AdminDashboard';
 import NotFoundPage from './pages/NotFoundPage';
 import ThankYouPage from './pages/ThankYouPage';
+import StudentSignupSuccessPage from './pages/StudentSignupSuccessPage';
 
 // Components
 import RequireAdmin from './components/RequireAdmin';
@@ -24,6 +25,7 @@ export default function App() {
         <Route index element={<HomePage />} />
         <Route path="login" element={<StudentLoginPage />} />
         <Route path="signup" element={<StudentSignupPage />} />
+        <Route path="student/signup-success" element={<StudentSignupSuccessPage />} />
         <Route path="student/home" element={<RequireStudent><StudentHomePage /></RequireStudent>} />
         <Route path="dashboard" element={<StudentDashboardPage />} />
         <Route path="report" element={<ReportComplaintPage />} />

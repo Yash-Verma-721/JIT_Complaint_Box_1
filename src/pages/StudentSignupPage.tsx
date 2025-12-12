@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { studentSignup } from '../api/studentAuthApi';
+import { studentSignup } from '../api/studentApi';
 
 type FormState = {
   email: string;
@@ -48,8 +48,8 @@ export default function StudentSignupPage(): JSX.Element {
       });
 
       if (response.success) {
-        // Redirect to student dashboard on successful signup
-        navigate('/dashboard');
+        // Redirect to success page after signup
+        navigate('/student/signup-success');
       } else {
         setApiError(response.message || 'Signup failed');
       }
