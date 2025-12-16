@@ -1,4 +1,5 @@
 import { Outlet, Link, useLocation } from 'react-router-dom';
+import JitLogo from '../Jit_logo.jpeg';
 
 export default function MainLayout() {
   const location = useLocation();
@@ -10,12 +11,13 @@ export default function MainLayout() {
       <header className={`sticky top-0 z-50 shadow-md transition-all ${
         isAdminPage 
           ? 'bg-gradient-to-r from-slate-800 to-slate-900' 
-          : 'bg-gradient-to-r from-indigo-600 to-purple-600'
-      }`}>
+          : ''
+      }`} style={{ backgroundColor: isAdminPage ? undefined : '#0E47A1' }}>
         <div className="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center">
-            <Link to="/" className="text-white font-bold text-2xl hover:opacity-90 transition">
-              📋 JIT Complaint Box
+            <Link to="/" className="flex items-center gap-3 hover:opacity-90 transition">
+              <img src={JitLogo} alt="JIT Logo" className="h-10 w-10" />
+              <span className="text-white font-bold text-2xl">JIT Complaint Box</span>
             </Link>
             
             <nav className="hidden sm:flex gap-6">
